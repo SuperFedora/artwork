@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # Copyright 2026 SuperFedora Contributors
 # SPDX-License-Identifier: Apache-2.0
-"""Generate 4K (3840x2160) 16-bit SuperFedora Hero and Ambient wallpapers across all 8 palettes."""
+"""Generate 4K (3840x2160) 16-bit SuperFedora Dark and Light Hero wallpapers across all 8 palettes."""
 
 import math
+import shutil
 from pathlib import Path
 from PIL import Image, ImageDraw
 
@@ -15,7 +16,10 @@ GRID_COLS = WIDTH // CELL_PX + 1
 GRID_ROWS = HEIGHT // CELL_PX
 ORIGIN_COL = (GRID_COLS - WM_W) // 2
 ORIGIN_ROW = (GRID_ROWS - WM_H) // 2
-BG_COLOR = (7, 8, 11)
+
+DARK_BG = (7, 8, 11)
+LIGHT_BG = (230, 232, 240)
+LIGHT_OUTLINE = (26, 27, 38)
 
 BAYER = [
     0, 32, 8, 40, 2, 34, 10, 42,
@@ -56,14 +60,14 @@ WM_ROWS = [
 ]
 
 PALETTES = [
-    ("01-super-blue", (122, 162, 247)),
-    ("02-metroid-violet", (187, 154, 247)),
-    ("03-super-ruby", (247, 118, 142)),
-    ("04-emerald-green", (158, 206, 106)),
-    ("05-star-gold", (224, 175, 104)),
-    ("06-electric-cyan", (125, 207, 255)),
-    ("07-flame-orange", (255, 158, 100)),
-    ("08-neon-coral", (244, 63, 94)),
+    ("01-super-blue", (122, 162, 247), (37, 84, 163)),
+    ("02-metroid-violet", (187, 154, 247), (107, 56, 184)),
+    ("03-super-ruby", (247, 118, 142), (185, 28, 60)),
+    ("04-emerald-green", (158, 206, 106), (45, 122, 49)),
+    ("05-star-gold", (224, 175, 104), (148, 98, 16)),
+    ("06-electric-cyan", (125, 207, 255), (3, 105, 161)),
+    ("07-flame-orange", (255, 158, 100), (184, 67, 9)),
+    ("08-neon-coral", (244, 63, 94), (159, 18, 57)),
 ]
 
 
@@ -105,11 +109,11 @@ def sample_noise(x, y):
     return top * (1.0 - sy) + bot * sy
 
 
-def blend_on_bg(rgb, alpha):
+def blend(bg, fg, alpha):
     return (
-        int(round(BG_COLOR[0] * (1.0 - alpha) + rgb[0] * alpha)),
-        int(round(BG_COLOR[1] * (1.0 - alpha) + rgb[1] * alpha)),
-        int(round(BG_COLOR[2] * (1.0 - alpha) + rgb[2] * alpha)),
+        int(round(bg[0] * (1.0 - alpha) + fg[0] * alpha)),
+        int(round(bg[1] * (1.0 - alpha) + fg[1] * alpha)),
+        int(round(bg[2] * (1.0 - alpha) + fg[2] * alpha)),
     )
 
 
@@ -124,24 +128,35 @@ def has_word_neighbor(wm_row, wm_col):
     return False
 
 
-def render_wallpaper(rgb, show_wordmark, sec=4.2):
-    ar, ag, ab = rgb
+def render_wallpaper(dark_rgb, light_rgb, is_light=False, sec=4.2):
+    bg = LIGHT_BG if is_light else DARK_BG
+    ar, ag, ab = dark_rgb
+    lr, lg, lb = light_rgb
     hr = min(255, int(round(ar + (255 - ar) * 0.55)))
     hg = min(255, int(round(ag + (255 - ag) * 0.55)))
     hb = min(255, int(round(ab + (255 - ab) * 0.55)))
 
-    color_word_spec = (255, 255, 255)
-    color_word_hot = (hr, hg, hb)
-    color_word_mid = (ar, ag, ab)
-    color_word_base = blend_on_bg((ar, ag, ab), 0.72)
+    if not is_light:
+        color_word_spec = (255, 255, 255)
+        color_word_hot = (hr, hg, hb)
+        color_word_mid = (ar, ag, ab)
+        color_word_base = blend(bg, (ar, ag, ab), 0.72)
+        color_halo_high = blend(bg, (hr, hg, hb), 0.34)
+        color_halo_mid = blend(bg, (ar, ag, ab), 0.22)
+        color_field_high = blend(bg, (ar, ag, ab), 0.14)
+        color_field_low = blend(bg, (ar, ag, ab), 0.06)
+    else:
+        # Cartridge Light Mode: crisp dark obsidian pixel trench with vibrant 16-bit jewel fill
+        color_word_spec = (hr, hg, hb)
+        color_word_hot = (ar, ag, ab)
+        color_word_mid = blend((lr, lg, lb), (ar, ag, ab), 0.55)
+        color_word_base = (lr, lg, lb)
+        color_halo_high = blend(bg, (lr, lg, lb), 0.32)
+        color_halo_mid = blend(bg, (lr, lg, lb), 0.20)
+        color_field_high = blend(bg, (lr, lg, lb), 0.13)
+        color_field_low = blend(bg, (lr, lg, lb), 0.06)
 
-    # Background dither palette kept recessed so wordmark & windows pop cleanly
-    color_halo_high = blend_on_bg((hr, hg, hb), 0.34 if show_wordmark else 0.48)
-    color_halo_mid = blend_on_bg((ar, ag, ab), 0.22 if show_wordmark else 0.30)
-    color_field_high = blend_on_bg((ar, ag, ab), 0.14)
-    color_field_low = blend_on_bg((ar, ag, ab), 0.06)
-
-    img = Image.new("RGB", (WIDTH, HEIGHT), BG_COLOR)
+    img = Image.new("RGB", (WIDTH, HEIGHT), bg)
     draw = ImageDraw.Draw(img)
 
     s1_x, s1_y, s1_r = WIDTH * 0.32, HEIGHT * 0.42, 1450.0
@@ -156,9 +171,9 @@ def render_wallpaper(rgb, show_wordmark, sec=4.2):
             if px >= WIDTH:
                 continue
             wm_col = c - ORIGIN_COL
-            in_word_box = show_wordmark and (0 <= wm_row < WM_H) and (0 <= wm_col < WM_W)
+            in_word_box = (0 <= wm_row < WM_H) and (0 <= wm_col < WM_W)
             is_word = in_word_box and WM_ROWS[wm_row][wm_col] == "1"
-            is_outline = show_wordmark and not is_word and (-1 <= wm_row <= WM_H) and (-1 <= wm_col <= WM_W) and has_word_neighbor(wm_row, wm_col)
+            is_outline = not is_word and (-1 <= wm_row <= WM_H) and (-1 <= wm_col <= WM_W) and has_word_neighbor(wm_row, wm_col)
 
             cx = px + CELL_PX * 0.5
             cy = py + CELL_PX * 0.5
@@ -175,7 +190,6 @@ def render_wallpaper(rgb, show_wordmark, sec=4.2):
             box = [px, py, px + CELL_PX - GAP_PX - 1, py + CELL_PX - GAP_PX - 1]
             if is_word:
                 lit = 0.30 + sm * 2.10 + rip_glow * 1.35
-                # Subtle top-to-bottom 16-bit SNES bevel gradient across each glyph row
                 bevel = 0.18 if (wm_row in (1, 2, 8, 9)) else 0.0
                 score = lit + bevel
                 fill = (
@@ -188,7 +202,8 @@ def render_wallpaper(rgb, show_wordmark, sec=4.2):
                 continue
 
             if is_outline:
-                # Crisp 1-cell obsidian trench around SUPER FEDORA glyphs for unmistakable contrast
+                if is_light:
+                    draw.rectangle(box, fill=LIGHT_OUTLINE)
                 continue
 
             nx = c * 0.07 + sec * 0.16
@@ -210,29 +225,33 @@ def render_wallpaper(rgb, show_wordmark, sec=4.2):
 
 def main():
     repo_root = Path(__file__).resolve().parent.parent
-    hero_dir = repo_root / "wallpapers" / "hero"
-    ambient_dir = repo_root / "wallpapers" / "ambient"
-    hero_dir.mkdir(parents=True, exist_ok=True)
-    ambient_dir.mkdir(parents=True, exist_ok=True)
+    wall_root = repo_root / "wallpapers"
+    for old in ("hero", "ambient"):
+        if (wall_root / old).exists():
+            shutil.rmtree(wall_root / old)
 
-    for idx, (slug, rgb) in enumerate(PALETTES):
+    dark_dir = wall_root / "dark"
+    light_dir = wall_root / "light"
+    dark_dir.mkdir(parents=True, exist_ok=True)
+    light_dir.mkdir(parents=True, exist_ok=True)
+
+    for idx, (slug, dark_rgb, light_rgb) in enumerate(PALETTES):
         sec = 3.5 + idx * 1.1
-        hero_img = render_wallpaper(rgb, True, sec=sec)
-        hero_img.save(hero_dir / f"{slug}.png", optimize=True)
+        dark_img = render_wallpaper(dark_rgb, light_rgb, False, sec=sec)
+        dark_img.save(dark_dir / f"{slug}.png", optimize=True)
 
-        amb_img = render_wallpaper(rgb, False, sec=sec)
-        amb_img.save(ambient_dir / f"{slug}.png", optimize=True)
-        print(f"[OK] Generated {slug} (hero + ambient)")
+        light_img = render_wallpaper(dark_rgb, light_rgb, True, sec=sec)
+        light_img.save(light_dir / f"{slug}.png", optimize=True)
+        print(f"[OK] Generated {slug} (dark + light)")
 
     showcase_map = {
-        "pixel-superfedora-blue.png": hero_dir / "01-super-blue.png",
-        "pixel-crateria-synth.png": hero_dir / "02-metroid-violet.png",
-        "pixel-retro-night.png": hero_dir / "06-electric-cyan.png",
-        "pixel-dark-slate.png": ambient_dir / "01-super-blue.png",
+        "pixel-superfedora-blue.png": dark_dir / "01-super-blue.png",
+        "pixel-crateria-synth.png": dark_dir / "02-metroid-violet.png",
+        "pixel-retro-night.png": dark_dir / "06-electric-cyan.png",
+        "pixel-dark-slate.png": light_dir / "01-super-blue.png",
     }
     for dst_name, src_path in showcase_map.items():
-        dst_path = repo_root / "wallpapers" / dst_name
-        dst_path.write_bytes(src_path.read_bytes())
+        (wall_root / dst_name).write_bytes(src_path.read_bytes())
 
 
 if __name__ == "__main__":
