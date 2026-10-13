@@ -140,28 +140,21 @@ def render_wallpaper(dark_rgb, light_rgb, is_light=False, sec=4.2):
         color_word_spec = (255, 255, 255)
         color_word_hot = (hr, hg, hb)
         color_word_mid = (ar, ag, ab)
-        color_word_base = blend(bg, (ar, ag, ab), 0.72)
-        color_halo_high = blend(bg, (hr, hg, hb), 0.34)
-        color_halo_mid = blend(bg, (ar, ag, ab), 0.22)
-        color_field_high = blend(bg, (ar, ag, ab), 0.14)
+        color_word_base = blend(bg, (ar, ag, ab), 0.74)
+        color_field_high = blend(bg, (ar, ag, ab), 0.16)
+        color_field_mid = blend(bg, (ar, ag, ab), 0.11)
         color_field_low = blend(bg, (ar, ag, ab), 0.06)
     else:
-        # Cartridge Light Mode: crisp dark obsidian pixel trench with vibrant 16-bit jewel fill
         color_word_spec = (hr, hg, hb)
         color_word_hot = (ar, ag, ab)
         color_word_mid = blend((lr, lg, lb), (ar, ag, ab), 0.55)
         color_word_base = (lr, lg, lb)
-        color_halo_high = blend(bg, (lr, lg, lb), 0.32)
-        color_halo_mid = blend(bg, (lr, lg, lb), 0.20)
-        color_field_high = blend(bg, (lr, lg, lb), 0.13)
-        color_field_low = blend(bg, (lr, lg, lb), 0.06)
+        color_field_high = blend(bg, (lr, lg, lb), 0.15)
+        color_field_mid = blend(bg, (lr, lg, lb), 0.10)
+        color_field_low = blend(bg, (lr, lg, lb), 0.05)
 
     img = Image.new("RGB", (WIDTH, HEIGHT), bg)
     draw = ImageDraw.Draw(img)
-
-    s1_x, s1_y, s1_r = WIDTH * 0.32, HEIGHT * 0.42, 1450.0
-    s2_x, s2_y, s2_r = WIDTH * 0.68, HEIGHT * 0.54, 1350.0
-    rip_x, rip_y, rip_r, ring_w = WIDTH * 0.32, HEIGHT * 0.42, 980.0, 90.0
 
     for r in range(GRID_ROWS):
         py = r * CELL_PX
@@ -173,31 +166,31 @@ def render_wallpaper(dark_rgb, light_rgb, is_light=False, sec=4.2):
             wm_col = c - ORIGIN_COL
             in_word_box = (0 <= wm_row < WM_H) and (0 <= wm_col < WM_W)
             is_word = in_word_box and WM_ROWS[wm_row][wm_col] == "1"
-            is_outline = not is_word and (-1 <= wm_row <= WM_H) and (-1 <= wm_col <= WM_W) and has_word_neighbor(wm_row, wm_col)
-
-            cx = px + CELL_PX * 0.5
-            cy = py + CELL_PX * 0.5
-
-            d1 = math.hypot(cx - s1_x, cy - s1_y)
-            sm1 = ((1.0 - d1 / s1_r) ** 2) if d1 < s1_r else 0.0
-            d2 = math.hypot(cx - s2_x, cy - s2_y)
-            sm2 = (((1.0 - d2 / s2_r) ** 2) * 0.78) if d2 < s2_r else 0.0
-            sm = max(sm1, sm2)
-
-            dr = math.hypot(cx - rip_x, cy - rip_y)
-            rip_glow = max(0.0, (1.0 - abs(dr - rip_r) / ring_w) * 0.45) if abs(dr - rip_r) <= ring_w else 0.0
+            is_outline = (
+                not is_word
+                and (-1 <= wm_row <= WM_H)
+                and (-1 <= wm_col <= WM_W)
+                and has_word_neighbor(wm_row, wm_col)
+            )
 
             box = [px, py, px + CELL_PX - GAP_PX - 1, py + CELL_PX - GAP_PX - 1]
+            nx = c * 0.065 + sec * 0.16
+            ny = r * 0.065 - sec * 0.11
+            n_val = (
+                0.6 * sample_noise(nx, ny)
+                + 0.4 * sample_noise(nx * 0.5 - sec * 0.08, ny * 0.5 + sec * 0.07)
+            )
+
             if is_word:
-                lit = 0.30 + sm * 2.10 + rip_glow * 1.35
-                bevel = 0.18 if (wm_row in (1, 2, 8, 9)) else 0.0
-                score = lit + bevel
-                fill = (
-                    color_word_spec if score > 1.42
-                    else color_word_hot if score > 0.85
-                    else color_word_mid if score > 0.45
-                    else color_word_base
-                )
+                # 16-bit SNES 4-tier metallic bevel across SUPER (rows 1..6) and FEDORA (rows 8..22)
+                if wm_row in (1, 8):
+                    fill = color_word_spec if (wm_col + wm_row) % 3 != 0 else color_word_hot
+                elif wm_row in (2, 9, 10):
+                    fill = color_word_hot
+                elif wm_row in (6, 21, 22):
+                    fill = color_word_base
+                else:
+                    fill = color_word_hot if n_val > 0.68 else color_word_mid
                 draw.rectangle(box, fill=fill)
                 continue
 
@@ -206,17 +199,14 @@ def render_wallpaper(dark_rgb, light_rgb, is_light=False, sec=4.2):
                     draw.rectangle(box, fill=LIGHT_OUTLINE)
                 continue
 
-            nx = c * 0.07 + sec * 0.16
-            ny = r * 0.07 - sec * 0.11
-            n_val = 0.6 * sample_noise(nx, ny) + 0.4 * sample_noise(nx * 0.5 - sec * 0.08, ny * 0.5 + sec * 0.07)
-            energy = n_val * 0.75 + (0.5 + 0.5 * math.sin(sec * 1.8 + ((r * 37 + c * 11) % 6.283))) * 0.25
-            field_val = energy * 0.38 + sm * 0.82 + rip_glow * 0.75
+            # Pure organic Bayer-dithered pixel field (no circles, balls, or rings)
+            wave = 0.5 + 0.5 * math.sin(sec * 1.8 + ((r * 37 + c * 11) % 6.283))
+            field_val = n_val * 0.78 + wave * 0.22
             dither = BAYER[(r & 7) * 8 + (c & 7)] / 64.0
-            if field_val > dither * 0.76:
+            if field_val > dither * 0.82:
                 fill = (
-                    color_halo_high if (sm > 0.42 or rip_glow > 0.38)
-                    else color_halo_mid if (sm > 0.15 or rip_glow > 0.15)
-                    else color_field_high if field_val > 0.52
+                    color_field_high if field_val > 0.66
+                    else color_field_mid if field_val > 0.48
                     else color_field_low
                 )
                 draw.rectangle(box, fill=fill)
