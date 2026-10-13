@@ -1,4 +1,4 @@
-# SuperFedora Artwork 🛸
+# SuperFedora Artwork
 
 Brand media, 16-bit pixel avatars, logos, and curated retro wallpapers for the **[SuperFedora](https://superfedora.github.io/)** workstation.
 
@@ -10,4 +10,4 @@ All desktop media, interactive color themes, and component previews are hosted o
 
 **Official 16-Bit Portal & Gallery: [superfedora.github.io](https://superfedora.github.io/)**
 
-CC-BY-SA 4.0 © 2026 [SuperFedora](https://github.com/SuperFedora)
+Licensed under the Apache License, Version 2.0.
