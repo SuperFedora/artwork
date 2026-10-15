@@ -30,22 +30,35 @@ pub fn apply_all(st: &mut ThemeState, color_id: &str, mode: &str, corners: &str,
     for d in [&st.state_dir, &st.state_dir.join("cast"), &st.home.join(".config/hypr/conf"), &st.home.join(".config/quickshell"), &st.home.join(".config/fuzzel"), &st.home.join(".config/kitty"), &st.home.join(".config/idlescreen")] {
         let _ = fs::create_dir_all(d);
     }
-    let src_cast = st.home.join("Projects/superfedora/supertheme/cast");
-    if let Ok(entries) = fs::read_dir(&src_cast) {
-        for e in entries.flatten() {
-            let p = e.path();
-            if let Some(name) = p.file_name() {
-                let dst = st.state_dir.join("cast").join(name);
-                if !dst.exists() { let _ = fs::copy(&p, &dst); }
+    for src_cast in [
+        st.home.join("Projects/superfedora/supertheme/cast"),
+        st.home.join(".local/share/supertheme/cast"),
+        st.home.join(".local/share/superfedora/dotfiles/.config/superfedora/cast"),
+        PathBuf::from("/etc/skel/.config/superfedora/cast"),
+        PathBuf::from("/usr/share/superfedora/cast"),
+    ] {
+        if let Ok(entries) = fs::read_dir(&src_cast) {
+            for e in entries.flatten() {
+                let p = e.path();
+                if let Some(name) = p.file_name() {
+                    let dst = st.state_dir.join("cast").join(name);
+                    if !dst.exists() { let _ = fs::copy(&p, &dst); }
+                }
             }
+            break;
         }
     }
     let _ = fs::write(st.state_dir.join("theme.env"), format!("THEME_COLOR=\"{}\"\nTHEME_MODE=\"{mode}\"\nTHEME_CORNERS=\"{corners}\"\nTHEME_NIGHTLIGHT=\"{nl}\"\n", pal.id));
     let _ = fs::write(st.state_dir.join("theme-corners"), format!("{corners}\n"));
 
     let (lock_r, hypr_r, qs_r, qs_rs, fuz_r) = if corners == "rounded" { ("10", "10", "10", "6", "10") } else { ("0", "0", "0", "0", "0") };
-    let wall_rel = format!("~/Pictures/Wallpapers/{mode}/{}.png", pal.wall_key);
-    let wall_abs = st.home.join(format!("Pictures/Wallpapers/{mode}/{}.png", pal.wall_key));
+    let user_wall = st.home.join(format!("Pictures/Wallpapers/{mode}/{}.png", pal.wall_key));
+    let sys_wall = PathBuf::from(format!("/usr/share/superfedora/wallpapers/{mode}/{}.png", pal.wall_key));
+    let (wall_rel, wall_abs) = if user_wall.is_file() || !sys_wall.is_file() {
+        (format!("~/Pictures/Wallpapers/{mode}/{}.png", pal.wall_key), user_wall)
+    } else {
+        (sys_wall.to_string_lossy().to_string(), sys_wall)
+    };
 
     let _ = fs::write(st.home.join(".config/hypr/hyprpaper.conf"), format!("wallpaper {{\n    monitor =\n    path = {wall_rel}\n    fit_mode = cover\n}}\n\nsplash = false\n"));
     let _ = fs::write(st.home.join(".config/hypr/.current-wallpaper"), format!("{}\n", wall_abs.display()));
@@ -164,7 +177,8 @@ pub fn run_quiet(cmd: &str, args: &[&str]) {
 }
 
 pub fn list_wallpapers(st: &ThemeState) -> Vec<PathBuf> {
-    let dir = st.home.join("Pictures/Wallpapers").join(&st.mode);
+    let user_dir = st.home.join("Pictures/Wallpapers").join(&st.mode);
+    let dir = if user_dir.is_dir() { user_dir } else { PathBuf::from("/usr/share/superfedora/wallpapers").join(&st.mode) };
     let mut walls: Vec<PathBuf> = fs::read_dir(&dir)
         .ok()
         .into_iter()

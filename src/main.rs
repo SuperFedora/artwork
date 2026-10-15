@@ -19,7 +19,7 @@ use std::path::Path;
 use std::process;
 
 fn print_help() {
-    println!("SuperTheme v0.2.0 — Native Rust 16-Bit Theme, Wallpaper & SFX Engine");
+    println!("SuperTheme v0.4.0 — Native Rust 16-Bit Theme, Wallpaper & SFX Engine");
     println!("Usage:");
     println!("  supertheme                                  Launch TUI (or print status if non-TTY)");
     println!("  supertheme tui                              Launch interactive 16-Bit Theme & SFX Studio");
@@ -46,7 +46,7 @@ fn main() {
                 return;
             }
             "-V" | "--version" | "version" => {
-                println!("supertheme 0.2.0 (SuperFedora/supertheme — Rust 1.99 Native Engine)");
+                println!("supertheme 0.4.0 (SuperFedora/supertheme — Rust 1.99 Native Engine)");
                 return;
             }
             "sfx" | "sound" => {
