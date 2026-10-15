@@ -27,8 +27,18 @@ pub fn apply_all(st: &mut ThemeState, color_id: &str, mode: &str, corners: &str,
         )
     };
 
-    for d in [&st.state_dir, &st.home.join(".config/hypr/conf"), &st.home.join(".config/quickshell"), &st.home.join(".config/fuzzel"), &st.home.join(".config/kitty"), &st.home.join(".config/idlescreen")] {
+    for d in [&st.state_dir, &st.state_dir.join("cast"), &st.home.join(".config/hypr/conf"), &st.home.join(".config/quickshell"), &st.home.join(".config/fuzzel"), &st.home.join(".config/kitty"), &st.home.join(".config/idlescreen")] {
         let _ = fs::create_dir_all(d);
+    }
+    let src_cast = st.home.join("Projects/superfedora/supertheme/cast");
+    if let Ok(entries) = fs::read_dir(&src_cast) {
+        for e in entries.flatten() {
+            let p = e.path();
+            if let Some(name) = p.file_name() {
+                let dst = st.state_dir.join("cast").join(name);
+                if !dst.exists() { let _ = fs::copy(&p, &dst); }
+            }
+        }
     }
     let _ = fs::write(st.state_dir.join("theme.env"), format!("THEME_COLOR=\"{}\"\nTHEME_MODE=\"{mode}\"\nTHEME_CORNERS=\"{corners}\"\nTHEME_NIGHTLIGHT=\"{nl}\"\n", pal.id));
     let _ = fs::write(st.state_dir.join("theme-corners"), format!("{corners}\n"));
@@ -53,8 +63,8 @@ pub fn apply_all(st: &mut ThemeState, color_id: &str, mode: &str, corners: &str,
         lock_lbl("<b>\u{f0904} Suspend</b>", &format!("rgba({lock_fg}, 1.0)"), "12", "-276, -24", "right", "top", "    onclick = systemctl suspend\n"),
         lock_lbl("<b>\u{f0709} Restart</b>", &format!("rgba({lock_fg}, 1.0)"), "12", "-162, -24", "right", "top", "    onclick = systemctl reboot\n"),
         lock_lbl("<b>\u{f0425} Power Off</b>", "rgb(f7768e)", "12", "-28, -24", "right", "top", "    onclick = systemctl poweroff\n"),
-        lock_lbl("cmd[update:1000] ~/.local/share/superfedora/lib/session-ctl.sh status", &format!("rgb({acc})"), "12", "-28, 56", "right", "bottom", "    onclick = ~/.local/share/superfedora/lib/session-ctl.sh next\n"),
-        lock_lbl("<b>\u{f0343} Switch DE / Log Out</b>", &format!("rgba({lock_dim}, 1.0)"), "12", "-28, 28", "right", "bottom", "    onclick = ~/.local/share/superfedora/lib/session-ctl.sh switch\n"),
+        lock_lbl("cmd[update:1000] ~/.local/bin/superlock status", &format!("rgb({acc})"), "12", "-28, 56", "right", "bottom", "    onclick = ~/.local/bin/superlock next\n"),
+        lock_lbl("<b>\u{f0343} Switch DE / Log Out</b>", &format!("rgba({lock_dim}, 1.0)"), "12", "-28, 28", "right", "bottom", "    onclick = ~/.local/bin/superlock switch\n"),
         lock_lbl("<b>$USER</b>", &format!("rgba({lock_fg}, 1.0)"), "16", "0, 108", "center", "bottom", ""),
     );
     let _ = fs::write(st.home.join(".config/hypr/hyprlock.conf"), lock_cfg);
