@@ -4,7 +4,7 @@
 use ratatui::style::Color;
 use std::env;
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 #[derive(Clone, Copy)]
 pub struct Palette {
@@ -149,5 +149,35 @@ impl ThemeState {
     pub fn secondary_color(&self) -> Color {
         let s = self.palette().sec_rgb;
         Color::Rgb(s.0, s.1, s.2)
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+pub fn write_toolkit_themes(
+    home: &Path, state_dir: &Path, mode: &str, gtk: &str,
+    acc: &str, hot: &str, bg: &str, bg_alt: &str, bg_hov: &str, border: &str, fg: &str, fg_dim: &str, muted: &str,
+) {
+    let qt_scheme = state_dir.join("qt6-colorscheme.conf");
+    let _ = fs::write(
+        &qt_scheme,
+        format!(
+            "[ColorScheme]\nactive_colors=#{fg}, #{bg_alt}, #{bg_hov}, #{bg_alt}, #{bg}, #{border}, #{fg}, #{hot}, #{fg}, #{bg}, #{bg}, #000000, #{acc}, #{bg}, #{acc}, #{hot}, #{bg_alt}, #{bg}, #{bg_alt}, #{fg}, #{muted}, #{acc}\ninactive_colors=#{fg_dim}, #{bg_alt}, #{bg_hov}, #{bg_alt}, #{bg}, #{border}, #{fg_dim}, #{hot}, #{fg_dim}, #{bg}, #{bg}, #000000, #{border}, #{fg}, #{acc}, #{hot}, #{bg_alt}, #{bg}, #{bg_alt}, #{fg_dim}, #{muted}, #{border}\ndisabled_colors=#{muted}, #{bg}, #{bg_alt}, #{bg}, #{bg}, #{border}, #{muted}, #{muted}, #{muted}, #{bg}, #{bg}, #000000, #{border}, #{muted}, #{muted}, #{muted}, #{bg}, #{bg}, #{bg_alt}, #{muted}, #{muted}, #{border}\n"
+        ),
+    );
+    let _ = fs::write(
+        home.join(".config/hypr/hyprqt6engine.conf"),
+        format!(
+            "# SuperFedora Qt6 Theme Provider Configuration (hyprqt6engine)\ntheme {{\n    color_scheme = {}\n    icon_theme = Adwaita\n    style = Fusion\n    font = JetBrainsMono Nerd Font\n    font_size = 11\n    font_fixed = JetBrainsMono Nerd Font\n    font_fixed_size = 11\n}}\n\nmisc {{\n    single_click_activate = false\n    menus_have_icons = true\n    shortcuts_for_context_menus = true\n}}\n",
+            qt_scheme.display()
+        ),
+    );
+    let prefer_dark = if mode == "light" { 0 } else { 1 };
+    let gtk_ini = format!(
+        "[Settings]\ngtk-theme-name={gtk}\ngtk-icon-theme-name=Adwaita\ngtk-font-name=JetBrainsMono Nerd Font 11\ngtk-cursor-theme-name=Adwaita\ngtk-cursor-theme-size=24\ngtk-application-prefer-dark-theme={prefer_dark}\n"
+    );
+    for dir in [".config/gtk-3.0", ".config/gtk-4.0"] {
+        let p = home.join(dir);
+        let _ = fs::create_dir_all(&p);
+        let _ = fs::write(p.join("settings.ini"), &gtk_ini);
     }
 }

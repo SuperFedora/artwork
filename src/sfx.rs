@@ -103,8 +103,9 @@ fn write_wav(path: &Path, pcm: &[i16]) {
 }
 
 pub fn ensure_bank_at(dir: &Path) {
+    type SfxBank<'a> = (&'a str, &'a [(f64, f64)], f64, f64);
     let _ = fs::create_dir_all(dir);
-    let banks: &[(&str, &[(f64, f64)], f64, f64)] = &[
+    let banks: &[SfxBank<'_>] = &[
         ("startup", &[(987.77, 0.075), (1318.51, 0.32)], 0.22, 0.5),
         ("click", &[(1046.50, 0.018), (1567.98, 0.022)], 0.14, 0.25),
         ("confirm", &[(523.25, 0.045), (659.25, 0.045), (783.99, 0.045), (1046.50, 0.14)], 0.18, 0.5),

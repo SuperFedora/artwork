@@ -1,7 +1,7 @@
 // Copyright 2026 SuperFedora Contributors
 // SPDX-License-Identifier: Apache-2.0
 
-use crate::palettes::{PALETTES, ThemeState, ansi_rgb, resolve_color, resolve_mode};
+use crate::palettes::{PALETTES, ThemeState, ansi_rgb, resolve_color, resolve_mode, write_toolkit_themes};
 use std::fs;
 use std::io::Write;
 use std::path::{Path, PathBuf};
@@ -144,6 +144,7 @@ pub fn apply_all(st: &mut ThemeState, color_id: &str, mode: &str, corners: &str,
 
     run_quiet("gsettings", &["set", "org.gnome.desktop.interface", "color-scheme", portal]);
     run_quiet("gsettings", &["set", "org.gnome.desktop.interface", "gtk-theme", gtk]);
+    write_toolkit_themes(&st.home, &st.state_dir, mode, gtk, acc, hot, bg, bg_alt, bg_hov, border, fg, fg_dim, muted);
 
     if nl == "on" {
         let _ = Command::new("sh").args(["-c", "pgrep -x wlsunset >/dev/null 2>&1 || pgrep -x hyprsunset >/dev/null 2>&1 || (command -v hyprsunset >/dev/null 2>&1 && nohup hyprsunset -t 4200 >/dev/null 2>&1 &) || (command -v wlsunset >/dev/null 2>&1 && nohup wlsunset -t 4200 -T 6500 >/dev/null 2>&1 &)"]).status();
@@ -179,12 +180,7 @@ pub fn run_quiet(cmd: &str, args: &[&str]) {
 pub fn list_wallpapers(st: &ThemeState) -> Vec<PathBuf> {
     let user_dir = st.home.join("Pictures/Wallpapers").join(&st.mode);
     let dir = if user_dir.is_dir() { user_dir } else { PathBuf::from("/usr/share/superfedora/wallpapers").join(&st.mode) };
-    let mut walls: Vec<PathBuf> = fs::read_dir(&dir)
-        .ok()
-        .into_iter()
-        .flatten()
-        .flatten()
-        .map(|e| e.path())
+    let mut walls: Vec<PathBuf> = fs::read_dir(&dir).ok().into_iter().flatten().flatten().map(|e| e.path())
         .filter(|p| p.extension().and_then(|x| x.to_str()).map(|x| matches!(x, "png" | "jpg" | "jpeg" | "webp")).unwrap_or(false))
         .collect();
     walls.sort();
