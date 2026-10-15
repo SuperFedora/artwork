@@ -19,7 +19,7 @@ use std::path::Path;
 use std::process;
 
 fn print_help() {
-    println!("SuperTheme v0.4.0 — Native Rust 16-Bit Theme, Wallpaper & SFX Engine");
+    println!("SuperTheme v0.5.0 — Native Rust 16-Bit Theme, Wallpaper & SFX Engine");
     println!("Usage:");
     println!("  supertheme                                  Launch TUI (or print status if non-TTY)");
     println!("  supertheme tui                              Launch interactive 16-Bit Theme & SFX Studio");
@@ -32,6 +32,7 @@ fn print_help() {
     println!("  supertheme nightlight [on|off|toggle]       Toggle warm eye-care nightlight");
     println!("  supertheme wallpaper [next|prev|list|set <path>] Browse or rotate wallpapers");
     println!("  supertheme rgb [hex|off]                    Sync OpenRGB hardware lighting");
+    println!("  supertheme profile [stealth|balanced|forge|arcade] Sync RGB & animation mode hooks");
     println!("  supertheme sfx [status|on|off|toggle|init|play <chime>] Control 16-bit WAV SFX");
     println!("  supertheme pick                             Interactive Fuzzel 16-bit theme selector");
     println!("  supertheme reload                           Re-apply saved theme from state file");
@@ -46,7 +47,7 @@ fn main() {
                 return;
             }
             "-V" | "--version" | "version" => {
-                println!("supertheme 0.4.0 (SuperFedora/supertheme — Rust 1.99 Native Engine)");
+                println!("supertheme 0.5.0 (SuperFedora/supertheme — Rust 1.99 Native Engine)");
                 return;
             }
             "sfx" | "sound" => {
@@ -218,6 +219,15 @@ fn main() {
             }
         }
         "rgb" | "openrgb" => set_rgb(&st, pos.get(1).map(|s| s.as_str())),
+        "profile" | "workstation-mode" => {
+            let p = pos.get(1).map(|s| s.as_str()).unwrap_or("balanced");
+            if p == "stealth" {
+                set_rgb(&st, Some("off"));
+            } else {
+                set_rgb(&st, None);
+            }
+            println!("[OK] SuperTheme workstation profile synced: {p}");
+        }
         "reload" => {
             let c = st.color.clone();
             let m = st.mode.clone();
