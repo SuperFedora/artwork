@@ -109,7 +109,7 @@ pub fn apply_all(st: &mut ThemeState, color_id: &str, mode: &str, corners: &str,
     run_quiet("qs", &["ipc", "call", "theme", "reload"]);
 
     let fuzzel = format!(
-        "# Fuzzel Configuration — SuperFedora 16-Bit Theme ({} / {mode} / {corners})\nfont=JetBrainsMono Nerd Font:size=12\ndpi-aware=auto\nprompt=\"> \"\nicon-theme=Adwaita\nterminal=kitty -e\nwidth=36\nlines=10\nhorizontal-pad=24\nvertical-pad=16\ninner-pad=10\n\n[colors]\nbackground={bg}f2\ntext={fg}ff\nmatch={acc}ff\nselection={sel_bg}ff\nselection-text={fg}ff\nselection-match={hot}ff\nborder={acc}ff\n\n[border]\nwidth=2\nradius={fuz_r}\n",
+        "# Fuzzel Configuration — SuperFedora 16-Bit Theme ({} / {mode} / {corners})\nfont=JetBrainsMono Nerd Font:size=12\ndpi-aware=auto\nprompt=\"> \"\nicon-theme=Adwaita\nterminal=xdg-terminal-exec -e\nwidth=36\nlines=10\nhorizontal-pad=24\nvertical-pad=16\ninner-pad=10\n\n[colors]\nbackground={bg}f2\ntext={fg}ff\nmatch={acc}ff\nselection={sel_bg}ff\nselection-text={fg}ff\nselection-match={hot}ff\nborder={acc}ff\n\n[border]\nwidth=2\nradius={fuz_r}\n",
         pal.name
     );
     let _ = fs::write(st.home.join(".config/fuzzel/fuzzel.ini"), fuzzel);
@@ -132,6 +132,7 @@ pub fn apply_all(st: &mut ThemeState, color_id: &str, mode: &str, corners: &str,
     }
 
     let _ = fs::write(st.state_dir.join("ghostty-theme.conf"), format!("background = #{bg}\nforeground = #{fg}\ncursor-color = #{acc}\nselection-background = #{sel_bg}\n"));
+    let _ = fs::write(st.state_dir.join("foot-theme.ini"), format!("[colors]\nbackground={bg}\nforeground={fg}\nselection-background={sel_bg}\nselection-foreground={fg}\n"));
     let tmux_p = st.state_dir.join("tmux-theme.conf");
     let _ = fs::write(&tmux_p, format!("set -g status-style \"bg=#{bg_alt},fg=#{fg}\"\nset -g pane-active-border-style \"fg=#{acc}\"\nset -g pane-border-style \"fg=#{border}\"\n"));
     run_quiet("tmux", &["source-file", &tmux_p.to_string_lossy()]);
