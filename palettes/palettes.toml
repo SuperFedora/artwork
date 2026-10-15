@@ -1,0 +1,161 @@
+# SuperFedora 16-Bit Rainbow Palette Catalog (Day/Night x Square/Rounded)
+
+[[palette]]
+id = "01-crimson"
+name = "Crimson"
+wallpaper = "03-super-ruby"
+dark_accent = "f7768e"
+dark_hot = "ffbac7"
+light_accent = "b91c3c"
+light_hot = "e11d48"
+tui_color = "red"
+
+[[palette]]
+id = "02-scarlet"
+name = "Scarlet"
+wallpaper = "08-neon-coral"
+dark_accent = "ff5a5f"
+dark_hot = "ff8fa3"
+light_accent = "c81e32"
+light_hot = "e11d48"
+tui_color = "lightred"
+
+[[palette]]
+id = "03-ember"
+name = "Ember"
+wallpaper = "07-flame-orange"
+dark_accent = "ff7b54"
+dark_hot = "ffb26b"
+light_accent = "c2410c"
+light_hot = "ea580c"
+tui_color = "lightred"
+
+[[palette]]
+id = "04-amber"
+name = "Amber"
+wallpaper = "07-flame-orange"
+dark_accent = "ff9e64"
+dark_hot = "ffc98b"
+light_accent = "b84309"
+light_hot = "ea580c"
+tui_color = "yellow"
+
+[[palette]]
+id = "05-topaz"
+name = "Topaz"
+wallpaper = "05-star-gold"
+dark_accent = "e0af68"
+dark_hot = "ffdf9e"
+light_accent = "946210"
+light_hot = "ca8a04"
+tui_color = "yellow"
+
+[[palette]]
+id = "06-citrine"
+name = "Citrine"
+wallpaper = "05-star-gold"
+dark_accent = "f9e2af"
+dark_hot = "fff3b0"
+light_accent = "854d0e"
+light_hot = "ca8a04"
+tui_color = "yellow"
+
+[[palette]]
+id = "07-peridot"
+name = "Peridot"
+wallpaper = "04-emerald-green"
+dark_accent = "a6e3a1"
+dark_hot = "d8f3dc"
+light_accent = "15803d"
+light_hot = "16a34a"
+tui_color = "lightgreen"
+
+[[palette]]
+id = "08-emerald"
+name = "Emerald"
+wallpaper = "04-emerald-green"
+dark_accent = "9ece6a"
+dark_hot = "cbf0a3"
+light_accent = "2d7a31"
+light_hot = "16a34a"
+tui_color = "green"
+
+[[palette]]
+id = "09-verdant"
+name = "Verdant"
+wallpaper = "04-emerald-green"
+dark_accent = "73daca"
+dark_hot = "a8f9ff"
+light_accent = "0f766e"
+light_hot = "0d9488"
+tui_color = "cyan"
+
+[[palette]]
+id = "10-lagoon"
+name = "Lagoon"
+wallpaper = "06-electric-cyan"
+dark_accent = "2ac3de"
+dark_hot = "89dceb"
+light_accent = "0e7490"
+light_hot = "0891b2"
+tui_color = "cyan"
+
+[[palette]]
+id = "11-glacier"
+name = "Glacier"
+wallpaper = "06-electric-cyan"
+dark_accent = "7dcfff"
+dark_hot = "bfeaff"
+light_accent = "0369a1"
+light_hot = "0284c7"
+tui_color = "lightcyan"
+
+[[palette]]
+id = "12-cobalt"
+name = "Cobalt"
+wallpaper = "01-super-blue"
+dark_accent = "7aa2f7"
+dark_hot = "bcd3ff"
+light_accent = "2554a3"
+light_hot = "3c6eb4"
+tui_color = "blue"
+
+[[palette]]
+id = "13-indigo"
+name = "Indigo"
+wallpaper = "01-super-blue"
+dark_accent = "6c71c4"
+dark_hot = "a5abff"
+light_accent = "3730a3"
+light_hot = "4f46e5"
+tui_color = "lightblue"
+
+[[palette]]
+id = "14-violet"
+name = "Violet"
+wallpaper = "02-metroid-violet"
+dark_accent = "bb9af7"
+dark_hot = "decbff"
+light_accent = "6b38b8"
+light_hot = "8b5cf6"
+tui_color = "magenta"
+
+[[palette]]
+id = "15-orchid"
+name = "Orchid"
+wallpaper = "02-metroid-violet"
+dark_accent = "cba6f7"
+dark_hot = "f5c2e7"
+light_accent = "7e22ce"
+light_hot = "a855f7"
+tui_color = "lightmagenta"
+
+[[palette]]
+id = "16-fuchsia"
+name = "Fuchsia"
+wallpaper = "08-neon-coral"
+dark_accent = "f43f5e"
+dark_hot = "ff99ac"
+light_accent = "9f1239"
+light_hot = "be123c"
+tui_color = "lightmagenta"
